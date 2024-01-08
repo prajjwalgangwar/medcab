@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:medcab_assignment/blocs/book_manpower_bloc/bloc.dart';
+import 'package:medcab_assignment/blocs/book_manpower_bloc/event.dart';
 import 'package:medcab_assignment/elements/contact_card.dart';
 import 'package:medcab_assignment/widgets/book_manpower.dart';
 import 'package:medcab_assignment/widgets/frequently_asked_questions.dart';
@@ -42,7 +45,10 @@ class _BookManpowerState extends State<BookManpower> {
               const TopRatedManpower(),
               const CarouselSliderHealthCard(),
               const ManpowerBookingFunction(),
-              const FrequentlyAskedQuestions(),
+              BlocProvider<BookManpowerBloc>(
+                  create: (context) =>
+                      BookManpowerBloc()..add(FetchDetailsEvent()),
+                  child: const FrequentlyAskedQuestions()),
               const LeaveWithSmile(),
               const SliverToBoxAdapter(
                 child: SizedBox(height: 22),

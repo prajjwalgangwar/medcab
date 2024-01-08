@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:medcab_assignment/blocs/book_manpower_bloc/bloc.dart';
+import 'package:medcab_assignment/blocs/book_manpower_bloc/state.dart';
 import 'package:medcab_assignment/elements/divider.dart';
 import 'package:medcab_assignment/elements/header.dart';
-import 'package:medcab_assignment/utils/constants.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
-class FrequentlyAskedQuestions extends StatelessWidget {
+class FrequentlyAskedQuestions extends StatefulWidget {
   const FrequentlyAskedQuestions({super.key});
 
+  @override
+  State<FrequentlyAskedQuestions> createState() =>
+      _FrequentlyAskedQuestionsState();
+}
+
+class _FrequentlyAskedQuestionsState extends State<FrequentlyAskedQuestions>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return SliverMainAxisGroup(
@@ -21,20 +31,33 @@ class FrequentlyAskedQuestions extends StatelessWidget {
             heading: 'Frequently Asked Questions',
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return FAQCard(
-                  question: AppConstants.faqMap.keys.elementAt(index),
-                  answer: AppConstants.faqMap.values.elementAt(index),
-                );
-              },
-              childCount: 8, // Number of list items
+        BlocBuilder<BookManpowerBloc, ManpowerState>(builder: (context, state) {
+          print(
+              'state. ManpowerState: ${state.faqResponse.jsonData.faqList.length}');
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return Skeletonizer(
+                    enabled:
+                        state.faqResponseStatus == FAQResponseStatus.fetching,
+                    child: FAQCard(
+                      question: state.faqResponse.jsonData.faqList
+                          .elementAt(index)
+                          .header,
+                      answer: state.faqResponse.jsonData.faqList
+                          .elementAt(index)
+                          .description,
+                    ),
+                  );
+                },
+                childCount: state.faqResponse.jsonData.faqList
+                    .length, // Number of list items
+              ),
             ),
-          ),
-        ),
+          );
+        }),
       ],
     );
   }
@@ -49,8 +72,13 @@ class FAQCard extends StatefulWidget {
   State<FAQCard> createState() => _FAQCardState();
 }
 
-class _FAQCardState extends State<FAQCard> {
+class _FAQCardState extends State<FAQCard> with SingleTickerProviderStateMixin {
   bool isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,21 +112,15 @@ class _FAQCardState extends State<FAQCard> {
                 )),
           ],
         ),
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          height: isExpanded ? 60.0 : 0.0,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.answer,
-                  style: TextStyle(color: Colors.grey.shade400),
-                )
-              ],
-            ),
+        if (isExpanded)
+          Column(
+            children: [
+              Text(
+                widget.answer,
+                style: TextStyle(color: Colors.grey.shade400),
+              ),
+            ],
           ),
-        ),
         Divider(
           color: Colors.grey.shade300,
         )
